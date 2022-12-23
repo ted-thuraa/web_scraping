@@ -2,6 +2,7 @@ import booking.constants as const
 import os
 from selenium.webdriver.common.by import By
 from selenium import webdriver
+from booking.booking_filtration import BookingFiltration
 
 class Booking(webdriver.Chrome):
     #constructor
@@ -9,8 +10,11 @@ class Booking(webdriver.Chrome):
         self.driver_path = driver_path
         self.teardown = teardown
         os.environ['PATH'] += self.driver_path
+        #this fixes some errorsfrom chrome.. some requestradioaccessasync stuff
+        options = webdriver.ChromeOptions()
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
         #instantiate an instance of webdriver
-        super(Booking, self).__init__()
+        super(Booking, self).__init__(options=options)
         self.implicitly_wait(10)
         self.maximize_window()
 
@@ -91,3 +95,18 @@ class Booking(webdriver.Chrome):
         #click click click
         for _ in range(count - 1):
             increase_adults_element.click()
+
+    def click_search(self):
+        search_button = self.find_element(
+            By.CSS_SELECTOR, 
+            'button[type="submit"]'
+        )
+        search_button.click()
+
+    def filtration(self):
+        filtration = BookingFiltration(driver=self)
+        filtration.apply_star_rating(5, 4, 3)
+        filtration.sort_price_lowest_first()
+
+    def report_results(self):
+        hotel_items = self.find_element(By.ID)
